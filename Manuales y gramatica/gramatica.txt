@@ -1,0 +1,168 @@
+<S>::= <SENTENCIAS>
+
+
+<SENTENCIAS>::= <SENTENCIAS> <SENTENCIA> 
+            | <SENTENCIA>
+                      
+
+
+<SENTENCIA>::=<DEC_VAR>
+           |<ARREGLOS_DEC> 
+           |<BLOQUE>
+           |<IF>
+           |<SWITCH>
+           |<WHILE>
+           |<DO_WHILE> ";"
+           |<PRINT>
+           |<INCREMENTO_O_DECREMENTO> ";"
+           |<ASIGNACION> 
+           |"break" 
+           |<FOR> 
+           |<FUNCION> 
+           |<LLAMADA_FUNCION> ";" 
+           |<RE"or"NAR> 
+           |<CONTINUE> 
+           |"execute" <LLAMADA_FUNCION> ";" 
+           |<REASIGNACION> 
+           
+
+<REASIGNACION>::= <id> "=" <EXP> ";" 
+
+<CONTINUE>::= "continue" ";" 
+
+<RE"or"NAR>::= "return" <EXP> ";" 
+|"return" ";" 
+
+<LLAMADA_FUNCION>::= <id> "(" <VALORES> 
+|<id> "(" <LIST_P> ")"
+
+<LIST_P>::= <LIST_P> "," <EXP> 
+| <EXP> 
+
+<FUNCION>::= "void" <id> "(" <VALORES> <BLOQUE>
+|"PTipo" <id> "(" <VALORES> <BLOQUE> 
+
+<VALORES>::= ")" 
+| <PARAMETROS_LIST> ")"
+
+<PARAMETROS_LIST>::=<PARAMETROS_LIST> "," "PTipo" <id>
+|"PTipo" <id>
+
+<DEC_VAR>::= "PTipo" <DECLARACION_1> <FINDEC> 
+
+<INCREMENTO_O_DECREMENTO>::= <id> <INC_AND_DEC> 
+
+<FOR>::= T<FOR> "(" <DEC_VAR>  <EXP> ";" <INCREMENTO_O_DECREMENTO> ")" <BLOQUE> 
+
+<ASIGNACION>::= <id> "[" <EXP> "]" "=" <EXP> ";" 
+| <id> "[" <EXP> "]" "[" <EXP> "]" "=" <EXP> ";" 
+;
+
+<ARREGLOS_DEC>::= "PTipo" <id> "[" "]" "=" Tnew "PTipo" "[" <EXP> "]" ";" 
+| "PTipo" <id> "[" "]" "[" "]" "=" Tnew "PTipo" "[" <EXP> "]" "[" <EXP> "]" ";" 
+| "PTipo" <id> "[" "]" "=" "[" <LIS_EXP> "]" ";" 
+| "PTipo" <id> "[" "]" "[" "]" "=" "[" <LIST_DOB> "]" ";"
+;
+
+<LIST_DOB>::= <LIST_DOB> "," "[" <LIS_EXP> "]"
+| "[" <LIS_EXP> "]" 
+
+
+<LIS_EXP>::= <LIS_EXP> "," <EXP>
+| <EXP> 
+
+
+<FINDEC>::= ";"
+| "=" <EXP> ";"
+
+
+<INC_AND_DEC>::= "+" "+"
+| "-" "-" 
+
+<DECLARACION_1>::=  <ID_LIST> 
+
+
+<ID_LIST>::= <ID_LIST> "," <id> 
+        | <id> 
+
+
+<BLOQUE>::= "{" <SENTENCIAS> "}"
+        |"{" "}"
+
+<SWITCH>::= "switch" "(" <EXP> ")" "{" <CASES> "}" 
+|"switch" "(" <EXP> ")" "{" <CASES> DEFAULT "}" 
+
+<CASES>::= <CASES> <CASE>
+|<CASE> 
+
+<CASE>::= "case" <EXP> ":" <SENTENCIAS> 
+|"case" <EXP> ":" <SENTENCIAS> "break" ";" 
+| "case" <EXP> ":" "break" ";" 
+| "case" <EXP> ":" 
+
+
+DEFAULT::= "default" ":" <SENTENCIAS> 
+|"default" ":" 
+
+
+<IF>::= "if" "(" <EXP> ")" <BLOQUE>
+    |"if" "(" <EXP> ")" <BLOQUE> "else" <IF>
+    |"if" "(" <EXP> ")" <BLOQUE> "else" <BLOQUE> 
+
+<WHILE>::= "while" "(" <EXP> ")" <BLOQUE>
+
+
+<DO_WHILE>::= "do" <BLOQUE> "while" "(" <EXP> ")"
+
+
+<PRINT>::= "cout" "<<" <EXP> <FIN_COUT>
+
+<FIN_COUT>::= ";"
+        | "<<" Tendl ";"
+
+<EXP>::= <EXP> "+" <EXP>    
+    |<EXP> "-" <EXP>  
+    |<EXP> "*" <EXP>    
+    |<EXP> "/" <EXP>    
+    |<EXP> "%" <EXP>    
+    |<EXP> "!=" <EXP>
+    |<EXP> "==" <EXP>      
+    |<EXP> ">" <EXP>    
+    |<EXP> "<" <EXP>    
+    |<EXP> ">=" <EXP>   
+    |<EXP> "<=" <EXP>   
+    |<EXP> "and" <EXP>      
+    |<EXP> "or" <EXP>       
+    |"!" <EXP>          
+    |"To" "(" <EXP> ")" 
+    |"-" <EXP> 
+    |"pow" "(" <EXP> "," <EXP> ")" 
+                                           
+    |<EXP> "?" <EXP> ":" <EXP> 
+                                           
+    |"(" <EXP> ")"              
+    |<LLAMADA_FUNCION> 
+    |<id> "[" <EXP> "]" 
+    |<id> "[" <EXP> "]" "[" <EXP> "]" 
+    |"(" "PTipo" ")" <EXP>  
+                                            
+    |<cadena>                                                                                               
+    |<numero>                        
+    |"true"                           
+    |"false"                          
+    |<id>                             
+    |<caracter>                           
+    
+
+<id> ::=::== <letra> (<letra> | <digito>)*
+
+<numero> ::=::== [0-9]+ ("." [0-9]+)?
+
+<cadena> ::=::== "\"" [^"]* "\""
+
+<caracter> ::=::== "'" [^'] "'"
+
+
+<letra> ::=::== [a-zA-Z]
+
+<digito> ::=::== [0-9]
