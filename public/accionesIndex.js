@@ -18,7 +18,7 @@ function guardarArchivo() {
     const url = URL.createObjectURL(blob); // Crear una URL para el blob
     const a = document.createElement("a"); // Crear un elemento <a>
     a.href = url; // Establecer la URL del archivo
-    a.download = "archivo.txt"; // Establecer el nombre del archivo
+    a.download = "archivo.sc"; // Establecer el nombre del archivo
     a.click(); // Simular un clic en el elemento <a>
     URL.revokeObjectURL(url); // Liberar la URL del archivo
 }
@@ -41,7 +41,7 @@ abrirBtn.addEventListener("click", function() {
     console.log("Haz clic en el botón 'Abrir'");
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = ".txt"; // Establecer el tipo de archivo permitido, por ejemplo, .txt
+    input.accept = ".sc"; // Establecer el tipo de archivo permitido, por ejemplo, .txt
     input.onchange = abrirArchivo; // Llama a la función abrirArchivo cuando se selecciona un archivo
     input.click();
   });

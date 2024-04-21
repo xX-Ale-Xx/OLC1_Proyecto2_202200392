@@ -3,6 +3,8 @@ const app = express();
 const port = 3000;
 let cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+const { exec } = require('child_process');
 
 app.use(cors());
 app.use(express.json());
@@ -10,6 +12,7 @@ app.use(express.json());
 
 const parser = require('./analizador');
 const Interprete = require('./Analizador/Interprete');
+global.inter = new Interprete();
 const TS = require('./Analizador/TS');
 const L_Error = require('./Analizador/L_Error');
 const N_Error = require('./Analizador/N_Error');
@@ -23,16 +26,19 @@ app.get('/', (req, res) => {
 app.post( "/compilar",(req,res) =>{
     
     try{
+      global.cod = "";
       TS.getInstance().reiniciar();
       L_Error.getInstance().reiniciar();
       var resultado = parser.parse(req.body.textoEditor); 
       console.log(resultado);
       console.log(imprimir(resultado));
-      var inter = new Interprete();
-      var result = inter.analizar(resultado);
+      global.inter.analizar(resultado);
+      var result = global.cod;
+       
       console.log(result);
       var tablaSim = TS.getInstance().getsimbolos();
-      console.log(tablaSim);
+      generarHtml(tablaSim);
+      generarHtmlErrores(L_Error.getInstance().getErroresHtml());
       result += L_Error.getInstance().getErrores();
      
       res.send(result);
@@ -44,15 +50,62 @@ app.post( "/compilar",(req,res) =>{
 });
 
 
+function generarHtml(texto){
+  fs.writeFile('public/tablaSimbolos.html', texto, (err) => {
+    if (err) {
+        console.error('Error al escribir el archivo HTML:', err);
+    } else {
+        console.log('Archivo HTML generado con éxito.');
+    }
+});
+}
+
+function generarHtmlErrores(texto){
+  fs.writeFile('public/errores.html', texto, (err) => {
+    if (err) {
+        console.error('Error al escribir el archivo HTML:', err);
+    } else {
+        console.log('Archivo HTML generado con éxito.');
+    }
+});
+}
+
 function imprimir(raiz){
     var texto ="";
-    var contador=1;
+    var contador=1; 
     texto+="digraph G{";
-    texto+="Node0[label=\"" + escapar(raiz.tag +" | "+raiz.value) + "\"];\n";
   
+      texto+="Node0[label=\"" + escapar(raiz.tag +" | "+raiz.value) + "\"];\n";
+  
+    
     recorrido("Node0",raiz);
   
     texto+= "}";
+
+    fs.writeFile('public/output.dot', texto, err => {
+      if (err) {
+          console.error("Error al escribir el archivo:", err);
+      } else {
+          console.log("Archivo .dot generado con éxito.");
+          generarImagen();
+      }
+  });
+  function generarImagen() {
+    // Comando para convertir el .dot en una imagen PNG y abrir la imagen
+    const cmd = 'dot -Tpng public/output.dot -o public/output.png';
+
+    exec(cmd, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error al ejecutar el comando: ${error}`);
+            return;
+        }
+        if (stderr) {
+            console.error(`Error en stderr: ${stderr}`);
+            return;
+        }
+        console.log('Imagen generada y abierta con éxito.');
+    });
+}
   
     return texto;
   
@@ -65,9 +118,31 @@ function imprimir(raiz){
       hijos.childs.forEach(nodito=> {
         if(typeof nodito.tag=="undefined")return;
         let nombrehijo="Node"+contador;
-        texto+=nombrehijo+"[label=\"" + escapar(nodito.tag +" | "+nodito.value) + "\"];\n";
+        if(Array.isArray(nodito.value)){
+    
+          let datos = "[";
+        for(const v of nodito.value){
+          if(Array.isArray(v)){
+            datos += "[";
+            for(const x of v){
+              datos +=  x.value +",";
+            }
+            datos += "],";
+
+          }else{
+          datos +=  v.value +",";
+          }
+        }
+        datos += "]";
+        texto+=nombrehijo+"[label=\"" + escapar(nodito.tag +" | "+datos) + "\"];\n";
         texto+=padre+"->"+nombrehijo+";\n";
         contador++;
+
+        }else{
+          texto+=nombrehijo+"[label=\"" + escapar(nodito.tag +" | "+nodito.value) + "\"];\n";
+          texto+=padre+"->"+nombrehijo+";\n";
+          contador++;
+        }
         recorrido(nombrehijo,nodito);
       })
   

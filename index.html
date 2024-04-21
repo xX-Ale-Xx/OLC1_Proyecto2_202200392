@@ -37,7 +37,7 @@
                 <a id = "button-run"class="nav-link text-warning" aria-current="page" href="#" >Run</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link text-warning" href="#">Report</a>
+                <a class="nav-link text-warning" href="#" onclick="x()">Report</a>
               </li>
             
             </ul>
@@ -78,6 +78,18 @@
             </div>
       </div>
 
+      <div id="report-container" style="display:none; padding: 20px;"> <!-- Panel inicialmente oculto -->
+        <h2 style="text-align: center; color: white;">AST</h2>
+        <img id="report-image" src="" alt="Report Image" style="width:100%;"> <!-- Contenedor para la imagen -->
+      </div>
+
+      <div id="html-report-container" style="display:none; padding: 20px;">
+        <h2 style="text-align: center;color: white;">Report</h2>
+        <iframe id="html-report-iframe" style="width:100%; height:500px;" frameborder="0"></iframe>
+    </div>
+    
+      
+
       <script>
         const buttonRun = document.getElementById("button-run");
 
@@ -101,6 +113,32 @@ buttonRun.addEventListener("click", () => {
         .catch(error => console.error('Error:', error));
 
 });
+</script>
+
+<script>
+
+function x() {
+    var imgPath = "output.png"; // Asume que esta es la ubicación de la imagen generada
+    var htmlPath = "tablaSimbolos.html"; // Asume que esta es la ubicación del documento HTML
+    var htmlErr = "errores.html";
+    var timestamp = new Date().getTime(); // Obtiene un sello de tiempo actual
+
+    var newImgPath = imgPath + "?t=" + timestamp; // Añade el sello de tiempo a la URL de la imagen
+    var newHtmlPath = htmlPath + "?t=" + timestamp; // Añade el sello de tiempo a la URL del HTML
+    var newHtmlErrPath = htmlErr + "?t=" + timestamp;
+
+    var reportContainer = document.getElementById('report-container');
+    var reportImage = document.getElementById('report-image');
+    reportImage.src = newImgPath; // Establece la fuente de la imagen con el nuevo path
+    reportContainer.style.display = 'block'; // Muestra el contenedor de la imagen
+
+    window.open(newHtmlPath, '_blank'); // Abre el documento HTML en una nueva pestaña
+    window.open(htmlErr, '_blank');
+
+    alert("Reporte generado con éxito");
+}
+
+
 </script>
   
       <script src="main.js"></script>
