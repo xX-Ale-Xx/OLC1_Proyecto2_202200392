@@ -350,6 +350,18 @@ class Interprete{
         TS.getInstance().insertar(simbolo, pila);
       }
         break;
+        case "ARREGLOS_DEC_T5":
+          op = new Operador();
+          let arr = op.ejecutar(raiz.childs[5], pila);
+          console.log(arr, "ESTE ES EL ARREGLO");
+          if(raiz.childs[0].value.toLowerCase() == arr.tipo){
+            simbolo = new Simbolo(raiz.childs[1].value, raiz.childs[0].value.toLowerCase(), arr.valor , arr.valor.length, null, pila.obtenerUltimoAmbito());
+            TS.getInstance().insertar(simbolo, pila);
+
+          }else{
+            L_Error.getInstance().insertar(new N_Error("Semantico","No es posible asignar un valor " + arr.tipo + " a  un "+ raiz.childs[0].value ,raiz.childs[0].fila,raiz.childs[0].columna ));
+          }
+        break;
     }
 
   }else if(raiz.tag == "IF"){
@@ -394,8 +406,7 @@ class Interprete{
       if(global.br){
         global.br = false;
         break;
-      }else if(global.ret && !pila.existe(global.funcionActual)){
-        global.ret = false;
+      }else if(global.ret){
         break;
       }
       
@@ -415,8 +426,7 @@ class Interprete{
           if(global.br){
             global.br = false;
             break;
-          }else if(global.ret && !pila.existe(global.funcionActual)){
-            global.ret = false;
+          }else if(global.ret){
             break;
           }
           res = op.ejecutar(raiz.childs[4], pila)
@@ -434,8 +444,7 @@ class Interprete{
       if(global.br){
         global.br = false;
         break;
-      }else if(global.ret && !pila.existe(global.funcionActual)){
-        global.ret = false;
+      }else if(global.ret){
         break;
       }
       
@@ -446,7 +455,7 @@ class Interprete{
    pila.pop();
 
   }else if(raiz.tag == "LLAMADA_FUNCION" && raiz.childs.length == 3){
-    console.log("jejejejeej yo aqui entre");
+    
     simbolo = TS.getInstance().obtenerSinAmbito(raiz.childs[0].value);
     if(simbolo != null){
       let newAmbito = new Pila(raiz.childs[0].value);
@@ -456,6 +465,7 @@ class Interprete{
       global.ret = false;
       
       TS.getInstance().borrarPorAmbito(raiz.childs[0].value);
+      global.ret = false;
       pila.pop();
     }else{
       L_Error.getInstance().insertar(new N_Error("Semantico","La funcion "+ raiz.childs[0].value + " no existe en el ambito actual" ,raiz.childs[0].fila,raiz.childs[0].columna ));
@@ -471,11 +481,12 @@ class Interprete{
       let s;
       let p = 0;
       let simAct;
+      op = new Operador();
       for(const j of valores.childs[2].result){
-        s = TS.getInstance().obtener(j);
-        console.log(s);
+        s = op.ejecutar(j, pila);
+        console.log(j, "ESTE ES EL VALOR");
         let v = simbolo.parametros[p];
-        simAct = new Simbolo(v.id, v.tipo, s.valor, s.tamaño1, s.tamaño2);
+        simAct = new Simbolo(v.id, v.tipo, s.valor);
         TS.getInstance().insertar(simAct);
         p++;
       }
@@ -487,6 +498,7 @@ class Interprete{
       global.ret = false;
       
       TS.getInstance().borrarPorAmbito(raiz.childs[0].value);
+      global.ret = false;
       pila.pop();
       
     }else{
@@ -813,8 +825,8 @@ armarSwitch(raiz, pila){
       let opcion;
       for(const c of raiz.childs[5].result){
         opcion = op.ejecutar(c.childs[1], pila);
-        if(global.ret && !pila.existe(global.funcionActual)){
-          global.ret = false;
+        if(global.ret){
+          
           break;
         }
         if(res.valor == opcion.valor || continuar){

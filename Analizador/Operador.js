@@ -241,12 +241,14 @@ class Operador{
                         if(simbol.tipo== Resultado.tipo){
                         TS.getInstance().borrarPorAmbito(raiz.childs[0].childs[0].value);
                         pila.pop();
+                        
                         return Resultado;
                         }else{
                             Resultado= new ResultadoOp();
                             Resultado.tipo="null";
                             Resultado.valor=null;
                             pila.pop();
+                            global.ret = false;
                             L_Error.getInstance().insertar(new N_Error("Semantico","El tipo de retorno no coincide con el tipo de la funcion",raiz.fila,raiz.columna));
                             return Resultado;
                                         
@@ -256,6 +258,7 @@ class Operador{
                     Resultado.tipo="null";
                     Resultado.valor=null;
                     pila.pop();
+                    global.ret = false;
                     return Resultado;
                         
                     }}else{
@@ -263,8 +266,9 @@ class Operador{
                         let s;
                         let p = 0;
                         let simAct;
+                        
                         for(const ñ of funcion.childs[2].result){
-                            s = TS.getInstance().obtener(ñ);
+                            s = this.ejecutar(ñ, pila);
                             console.log(s);
                             let v = simbol.parametros[p];
                             simAct = new Simbolo(v.id, v.tipo, s.valor, s.tamaño1, s.tamaño2);
@@ -288,6 +292,7 @@ class Operador{
                                 Resultado.tipo="null";
                                 Resultado.valor=null;
                                 pila.pop();
+                                global.ret = false;
                                 L_Error.getInstance().insertar(new N_Error("Semantico","El tipo de retorno no coincide con el tipo de la funcion",raiz.fila,raiz.columna));
                                 return Resultado;
                                             
@@ -297,12 +302,116 @@ class Operador{
                         Resultado.tipo="null";
                         Resultado.valor=null;
                         pila.pop();
+                        global.ret = false;
                         return Resultado;
                             
                         }
 
 
                     }
+                }
+                break;
+
+            case "TO":
+                Resultado1=this.ejecutar(raiz.childs[2], pila);
+                if(Resultado1.tipo.toLowerCase() == "std::string"){
+                    if(raiz.childs[0].value.toLowerCase() == "tolower"){
+                    Resultado= new ResultadoOp();
+                    Resultado.tipo="std::string";
+                    Resultado.valor=Resultado1.valor.toLowerCase();
+                    return Resultado;
+                    }else if(raiz.childs[0].value.toLowerCase() == "toupper"){
+                    Resultado= new ResultadoOp();
+                    Resultado.tipo="std::string";
+                    Resultado.valor=Resultado1.valor.toUpperCase();
+                    return Resultado;
+                    }
+                }else{
+                    L_Error.getInstance().insertar(new N_Error("Semantico","No es posible operacion con: "+Resultado1.tipo,raiz.fila,columna.fila));
+                    res.tipo="error";
+                    res.valor="error";
+                        return res;
+                }
+                break;
+            case "ROUND":
+                Resultado1=this.ejecutar(raiz.childs[2], pila);
+                if(Resultado1.tipo.toLowerCase() == "double" || Resultado1.tipo.toLowerCase() == "int"){
+                    Resultado= new ResultadoOp();
+                    Resultado.tipo="int";
+                    Resultado.valor=Math.round(Resultado1.valor);
+                    return Resultado;
+                }else{
+                    L_Error.getInstance().insertar(new N_Error("Semantico","No es posible operacion con: "+Resultado1.tipo,raiz.fila,columna.fila));
+                    res.tipo="error";
+                    res.valor="error";
+                    return res;
+                }
+
+                break;
+            case "LENGTH":
+                Resultado1=this.ejecutar(raiz.childs[0], pila);
+                try{
+                    if(Array.isArray(Resultado1.valor) || Resultado1.tipo.toLowerCase() == "std::string"){
+                    Resultado= new ResultadoOp();
+                    Resultado.tipo="int";
+                    Resultado.valor=Resultado1.valor.length;
+                    return Resultado;
+                    }else{
+                        L_Error.getInstance().insertar(new N_Error("Semantico","No es posible operacion con: "+Resultado1.tipo,raiz.fila,columna.fila));
+                        res.tipo="error";
+                        res.valor="error";
+                        return res;
+                    }
+                }catch(e){
+                    L_Error.getInstance().insertar(new N_Error("Semantico","No es posible operacion con: "+Resultado1.tipo,raiz.fila,columna.fila));
+                    res.tipo="error";
+                    res.valor="error";
+                    return res;
+                }
+                break;
+            case "TYPEOF":
+                Resultado1=this.ejecutar(raiz.childs[2], pila);
+                if(Resultado1!=null){
+                    Resultado= new ResultadoOp();
+                    Resultado.tipo="std::string";
+                    Resultado.valor=Resultado1.tipo;
+                    return Resultado;
+                }else{
+                    L_Error.getInstance().insertar(new N_Error("Semantico","No es posible operacion con un null",raiz.fila,columna.fila));
+                    res.tipo="error";
+                    res.valor="error";
+                    return res;
+                }
+                break;
+            case "TO_STRING":
+                Resultado1=this.ejecutar(raiz.childs[2], pila);
+                if(Resultado1 != null){
+                    Resultado= new ResultadoOp();
+                    Resultado.tipo="std::string";
+                    Resultado.valor=String(Resultado1.valor);
+                    return Resultado;
+                }else{
+                    L_Error.getInstance().insertar(new N_Error("Semantico","No es posible operacion con un null",raiz.fila,columna.fila));
+                    res.tipo="error";
+                    res.valor="error";
+                    return res;
+                }
+                break;
+
+            case "C_STR":
+                Resultado1=this.ejecutar(raiz.childs[0], pila);
+                
+                if(Resultado1.tipo.toLowerCase() == "std::string"){
+                    Resultado= new ResultadoOp();
+                    Resultado.tipo="char";
+                    Resultado.valor=Resultado1.valor.split("");
+                    
+                    return Resultado;
+                }else{
+                    L_Error.getInstance().insertar(new N_Error("Semantico","No es posible operacion con: "+Resultado1.tipo,raiz.fila,columna.fila));
+                    res.tipo="error";
+                    res.valor="error";
+                    return res;
                 }
                 break;
             case "id":
@@ -395,14 +504,14 @@ class Operador{
             list.push({tipo: raiz.childs[2].value.toLowerCase(), id: raiz.childs[3].value});
             raiz.result = list;
         
-          }else if(raiz.tag == "ID_LIST" && raiz.childs.length == 1){
+          }else if(raiz.tag == "LIST_P" && raiz.childs.length == 1){
             let list = [];
-            list.push(raiz.childs[0].value);
+            list.push(raiz.childs[0]);
             raiz.result = list;
-          }else if(raiz.tag == "ID_LIST" && raiz.childs.length == 3){
+          }else if(raiz.tag == "LIST_P" && raiz.childs.length == 3){
             let list = raiz.childs[0].result;
             console.log("esta es la lista "+ list);
-            list.push(raiz.childs[2].value);
+            list.push(raiz.childs[2]);
             raiz.result = list;
         
           }

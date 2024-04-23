@@ -13,6 +13,9 @@ var errores = [];
 "//".*                              {} 
 [/][*][^*]*[*]+([^/*][^*]*[*]+)*[/] {}
 ";"                      return 'Tptcoma'
+"."                      return 'Tpointer'
+"length"             return 'Tlength'
+"typeof"             return 'Ttypeof'
 
 "*"                      return 'Tpor'
 "/"                      return 'Tdiv'
@@ -32,6 +35,7 @@ var errores = [];
 "?"                  return 'Tinterrogacion'
 ":"                  return 'Tdospuntos'
 
+"c_str"            return 'Tc_str'
 "("                      return 'Tparbre'
 ")"                      return 'Tparcierra'
 ","                      return 'Tcoma'
@@ -41,6 +45,11 @@ var errores = [];
 "["                      return 'Tcorchete1'
 "]"                      return 'Tcorchete2'
 
+"std::tostring"          return 'Ttostring'
+
+"round"             return 'Tround'
+"tolower"            return 'To'
+"toupper"          return 'To'
 "execute"            return 'Texecute'
 "for"                return 'Tfor'
 "endl"               return 'Tendl'
@@ -112,7 +121,7 @@ var errores = [];
     };
 
 %}
-%nonassoc 'Tinterrogacion' 'Tdospuntos'
+%nonassoc 'Tinterrogacion' 'Tdospuntos' 'Tpointer'
 %right 'Tasigna1'
 %left  'Tor'
 %left  'Tand'
@@ -168,8 +177,10 @@ RETORNAR: Treturn EXP Tptcoma {$$=new AST_Node("RETORNAR","RETORNAR",this._$.fir
 |Treturn Tptcoma {$$=new AST_Node("RETORNAR","RETORNAR",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("Treturn",$1,this._$.first_line,@1.last_column),new AST_Node(";",";",this._$.first_line,@2.last_column));};
 
 LLAMADA_FUNCION: Tid Tparbre VALORES {$$=new AST_Node("LLAMADA_FUNCION","LLAMADA_FUNCION",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column),new AST_Node("(","(",this._$.first_line,@2.last_column),$3);}
-|Tid Tparbre ID_LIST Tparcierra{$$=new AST_Node("LLAMADA_FUNCION","LLAMADA_FUNCION",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column),new AST_Node("(","(",this._$.first_line,@2.last_column),$3,new AST_Node(")",")",this._$.first_line,@4.last_column));};
+|Tid Tparbre LIST_P Tparcierra{$$=new AST_Node("LLAMADA_FUNCION","LLAMADA_FUNCION",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column),new AST_Node("(","(",this._$.first_line,@2.last_column),$3,new AST_Node(")",")",this._$.first_line,@4.last_column));};
 
+LIST_P: LIST_P Tcoma EXP {$$ = new AST_Node("LIST_P","LIST_P",this._$.first_line,@2.last_column); $$.addChilds($1,new AST_Node(",",$2,this._$.first_line,@2.last_column),$3);}
+| EXP {$$=new AST_Node("LIST_P","LIST_P",this._$.first_line,@1.last_column); $$.addChilds($1);};
 
 FUNCION: Tvoid Tid Tparbre VALORES BLOQUE {$$=new AST_Node("FUNCION","FUNCION",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("Tvoid",$1,this._$.first_line,@1.last_column),new AST_Node("id",$2,this._$.first_line,@2.last_column),new AST_Node("(","(",this._$.first_line,@3.last_column), $4, $5);}
 |PTipo Tid Tparbre VALORES BLOQUE {$$=new AST_Node("FUNCION","FUNCION",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("PTipo",$1,this._$.first_line,@1.last_column),new AST_Node("id",$2,this._$.first_line,@2.last_column),new AST_Node("(","(",this._$.first_line,@3.last_column), $4, $5);};
@@ -194,6 +205,7 @@ ARREGLOS_DEC: PTipo Tid Tcorchete1 Tcorchete2 Tasigna1 Tnew PTipo Tcorchete1 EXP
 | PTipo Tid Tcorchete1 Tcorchete2 Tcorchete1 Tcorchete2 Tasigna1 Tnew PTipo Tcorchete1 EXP Tcorchete2 Tcorchete1 EXP Tcorchete2 Tptcoma {$$=new AST_Node("ARREGLOS_DEC","ARREGLOS_DEC_T2",this._$.first_line,@15.last_column); $$.addChilds(new AST_Node("tipo",$1,this._$.first_line,@1.last_column),new AST_Node("id",$2,this._$.first_line,@2.first_column),new AST_Node("[",$3,this._$.first_line,@3.first_column),new AST_Node("]",$4,this._$.first_line,@4.first_column),new AST_Node("[",$5,this._$.first_line,@5.first_column),new AST_Node("]",$6,this._$.first_line,@6.first_column),new AST_Node("=",$7,this._$.first_line,@7.last_column),new AST_Node("new",$8,this._$.first_line,@8.first_column),new AST_Node("tipo",$9,this._$.first_line,@9.first_column),new AST_Node("[",$10,this._$.first_line,@10.first_column),$11,new AST_Node("]",$12,this._$.first_line,@12.first_column),new AST_Node("[",$13,this._$.first_line,@13.first_column),$14,new AST_Node("]",$15,this._$.first_line,@15.first_column),new AST_Node(";",$16,this._$.first_line,@16.last_column));}
 | PTipo Tid Tcorchete1 Tcorchete2 Tasigna1 Tcorchete1 LIST_EXP Tcorchete2 Tptcoma {$$=new AST_Node("ARREGLOS_DEC","ARREGLOS_DEC_T3",this._$.first_line,@9.last_column); $$.addChilds(new AST_Node("tipo",$1,this._$.first_line,@1.last_column),new AST_Node("id",$2,this._$.first_line,@2.first_column),new AST_Node("[",$3,this._$.first_line,@3.first_column),new AST_Node("]",$4,this._$.first_line,@4.first_column),new AST_Node("=",$5,this._$.first_line,@5.last_column),new AST_Node("[",$6,this._$.first_line,@6.first_column),new AST_Node("LIST_EXP",$7,this._$.first_line,@7.first_column),new AST_Node("]",$8,this._$.first_line,@8.first_column),new AST_Node(";",$9,this._$.first_line,@9.last_column));}
 | PTipo Tid Tcorchete1 Tcorchete2 Tcorchete1 Tcorchete2 Tasigna1 Tcorchete1 LIST_DOB Tcorchete2 Tptcoma {$$=new AST_Node("ARREGLOS_DEC","ARREGLOS_DEC_T4",this._$.first_line,@11.last_column); $$.addChilds(new AST_Node("tipo",$1,this._$.first_line,@1.last_column),new AST_Node("id",$2,this._$.first_line,@2.first_column),new AST_Node("[",$3,this._$.first_line,@3.first_column),new AST_Node("]",$4,this._$.first_line,@4.first_column),new AST_Node("[",$5,this._$.first_line,@5.first_column),new AST_Node("]",$6,this._$.first_line,@6.first_column),new AST_Node("=",$7,this._$.first_line,@7.last_column),new AST_Node("[",$8,this._$.first_line,@8.first_column),new AST_Node("LIST_DOB",$9,this._$.first_line,@9.first_column),new AST_Node("]",$10,this._$.first_line,@10.first_column),new AST_Node(";",$11,this._$.first_line,@11.last_column));}
+|PTipo Tid Tcorchete1 Tcorchete2 Tasigna1 EXP Tptcoma {$$=new AST_Node("ARREGLOS_DEC","ARREGLOS_DEC_T5",this._$.first_line,@6.last_column); $$.addChilds(new AST_Node("tipo",$1,this._$.first_line,@1.last_column),new AST_Node("id",$2,this._$.first_line,@2.first_column),new AST_Node("[",$3,this._$.first_line,@3.first_column),new AST_Node("]",$4,this._$.first_line,@4.first_column),new AST_Node("=",$5,this._$.first_line,@5.last_column),$6,new AST_Node(";",$7,this._$.first_line,@7.last_column));}
 ;
 
 LIST_DOB: LIST_DOB Tcoma Tcorchete1 LIST_EXP Tcorchete2 {$$= $1; $1.push($4);}
@@ -267,14 +279,24 @@ EXP: EXP Tmas EXP                    {$$= new AST_Node("EXP","EXP",this._$.first
     |EXP Tand EXP                    {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds($1,new AST_Node("op",$2,this._$.first_line,@2.last_column),$3);}
     |EXP Tor EXP                     {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds($1,new AST_Node("op",$2,this._$.first_line,@2.last_column),$3);}
     |Tnot EXP                        {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds(new AST_Node("op",$1,this._$.first_line,@1.last_column),$2);}
+    |To Tparbre EXP Tparcierra   {$$= new AST_Node("TO","TO",this._$.first_line,@2.last_column);$$.addChilds(new AST_Node("To",$1,this._$.first_line,@1.last_column),new AST_Node("(",$2,this._$.first_line,@2.last_column),$3, new AST_Node(")",$4,this._$.first_line,@4.last_column));}
     |Tmenos EXP %prec umenos         {$$= new AST_Node("EXP","EXP",this._$.first_line,@2.last_column);$$.addChilds(new AST_Node("op",$1,this._$.first_line,@1.last_column),$2);}
     |Tpow Tparbre EXP Tcoma EXP Tparcierra {$$=new AST_Node("EXP","EXP",this._$.first_line,@1.last_column); 
                                             $$.addChilds($3,new AST_Node(",",$4,this._$.first_line,@4.last_column),$5);}
     |EXP Tinterrogacion EXP Tdospuntos EXP  {$$=new AST_Node("TERNARIO","TERNARIO",this._$.first_line,@1.last_column); 
                                             $$.addChilds($1,new AST_Node("?",$2,this._$.first_line,@2.last_column),$3,new AST_Node(":",$4,this._$.first_line,@4.last_column),$5);}
     |Tparbre EXP Tparcierra              {$$=$2}
+    | Ttostring Tparbre EXP Tparcierra {$$=new AST_Node("TO_STRING","TO_STRING",this._$.first_line,@1.last_column); 
+                                            $$.addChilds(new AST_Node("tostring",$1,this._$.first_line,@1.last_column),new AST_Node("(",$2,this._$.first_line,@2.last_column),$3,new AST_Node(")",$4,this._$.first_line,@4.last_column));}
+    |EXP Tpointer Tlength Tparbre Tparcierra {$$=new AST_Node("LENGTH","LENGTH",this._$.first_line,@3.last_column); 
+                                            $$.addChilds($1,new AST_Node(".",$2,this._$.first_line,@2.last_column),new AST_Node("length",$3,this._$.first_line,@3.last_column),new AST_Node("(",$4,this._$.first_line,@4.last_column),new AST_Node(")",$5,this._$.first_line,@5.last_column));}
     |LLAMADA_FUNCION {$$ = new AST_Node("LLAMADA","LLAMADA",this._$.first_line,@1.last_column); $$.addChilds($1);}
+    | EXP Tpointer Tc_str Tparbre Tparcierra {$$=new AST_Node("C_STR","C_STR",this._$.first_line,@3.last_column); 
+                                            $$.addChilds($1,new AST_Node(".",$2,this._$.first_line,@2.last_column),new AST_Node("c_str",$3,this._$.first_line,@3.last_column),new AST_Node("(",$4,this._$.first_line,@4.last_column),new AST_Node(")",$5,this._$.first_line,@5.last_column));}
+    |Ttypeof Tparbre EXP Tparcierra {$$=new AST_Node("TYPEOF","TYPEOF",this._$.first_line,@1.last_column); 
+                                            $$.addChilds(new AST_Node("typeof",$1,this._$.first_line,@1.last_column),new AST_Node("(",$2,this._$.first_line,@2.last_column),$3,new AST_Node(")",$4,this._$.first_line,@4.last_column));}
     |Tid Tcorchete1 EXP Tcorchete2 {$$ = new AST_Node("ID_ARR","ID_ARR",this._$.first_line,@1.last_column);  $$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column),new AST_Node("[",$2,this._$.first_line,@2.last_column),$3,new AST_Node("]",$4,this._$.first_line,@4.last_column));}
+    |Tround Tparbre EXP Tparcierra {$$=new AST_Node("ROUND","ROUND",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("round",$1,this._$.first_line,@1.last_column),new AST_Node("(",$2,this._$.first_line,@2.last_column),$3,new AST_Node(")",$4,this._$.first_line,@4.last_column));}
     |Tid Tcorchete1 EXP Tcorchete2 Tcorchete1 EXP Tcorchete2 {$$ = new AST_Node("ID_ARR_2","ID_ARR_2",this._$.first_line,@1.last_column);  $$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column),new AST_Node("[",$2,this._$.first_line,@2.last_column),$3,new AST_Node("]",$4,this._$.first_line,@4.last_column),new AST_Node("[",$5,this._$.first_line,@5.last_column),$6,new AST_Node("]",$7,this._$.first_line,@7.last_column));}
     |Tparbre PTipo Tparcierra EXP  %prec cast   {$$=new AST_Node("CAST","CAST",this._$.first_line,@1.last_column); 
                                             $$.addChilds(new AST_Node("cast",$1+$2+$3,this._$.first_line,@1.last_column),$4);}
@@ -291,4 +313,7 @@ EXP: EXP Tmas EXP                    {$$= new AST_Node("EXP","EXP",this._$.first
     |Tfalse                          {$$= new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("false",$1,this._$.first_line,@1.last_column));}
     |Tid                             {$$= new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column));}
     |Tchar                             {$$= new AST_Node("EXP","EXP",this._$.first_line,@1.last_column);$$.addChilds(new AST_Node("char",$1,this._$.first_line,@1.last_column));};
+
+
+    
     
