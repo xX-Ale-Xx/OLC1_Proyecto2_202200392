@@ -93,6 +93,9 @@ var errores = [];
 
 %{
 
+const L_Error = require('./Analizador/L_Error');
+const N_Error = require('./Analizador/N_Error');
+
     function AST_Node(tag,value,fila,columna){
         this.tag = tag;
         this.value = value;
@@ -139,7 +142,8 @@ var errores = [];
 
 %%
 
-S: SENTENCIAS EOF {$$=new AST_Node("RAIZ","RAIZ",this.$first_line,@1.last_column);$$.addChilds($1);return $$} ;
+S: SENTENCIAS EOF {$$=new AST_Node("RAIZ","RAIZ",this.$first_line,@1.last_column);$$.addChilds($1);return $$} 
+| error EOF {return new AST_Node("ERROR","ERROR",this._$.first_line,@1.last_column); L_Error.getInstance().insertar(new N_Error("Sintactico", "Error en la gramatica "+ $1+ " ", this._$.first_line, @1.last_column));};
 
 
 SENTENCIAS: SENTENCIAS SENTENCIA {
@@ -159,7 +163,7 @@ SENTENCIA:  DEC_VAR {$$= new AST_Node("SENTENCIA","SENTENCIA",this._$.first_line
            |PRINT{$$=$1}
            |INCREMENTO_O_DECREMENTO Tptcoma{$$=new AST_Node("SENTENCIA_IAD","SENTENCIA_IAD",this._$.first_line,@1.last_column);$$.addChilds($1,new AST_Node(";",$2,this._$.first_line,@2.last_column));}
            |ASIGNACION {$$=new AST_Node("SENTENCIA_ASIG", "SENTENCIA_ASIG", this._$.first_line,@1.last_column); $$.addChilds($1);}
-           |Tsent_trans {$$=new AST_Node("SENTENCIA_TR","SENTENCIA_TR",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("Tsent_trans",$1,this._$.first_line,@1.last_column));}
+           |Tsent_trans Tptcoma{$$=new AST_Node("SENTENCIA_TR","SENTENCIA_TR",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("Tsent_trans",$1,this._$.first_line,@1.last_column));}
            |FOR { $$=new AST_Node("SENTENCIA_FOR","SENTENCIA_FOR",this._$.first_line,@1.last_column); $$.addChilds($1); }
            |FUNCION {$$=new AST_Node("SENTENCIA_FUNCION","SENTENCIA_FUNCION",this._$.first_line,@1.last_column); $$.addChilds($1); }
            |LLAMADA_FUNCION Tptcoma {$$=new AST_Node("SENTENCIA_LLAMADA","SENTENCIA_LLAMADA",this._$.first_line,@1.last_column); $$.addChilds($1,new AST_Node(";",";",this._$.first_line,@2.last_column));}
@@ -167,6 +171,7 @@ SENTENCIA:  DEC_VAR {$$= new AST_Node("SENTENCIA","SENTENCIA",this._$.first_line
            |CONTINUE { $$=new AST_Node("SENTENCIA_CONTINUE","SENTENCIA_CONTINUE",this._$.first_line,@1.last_column); $$.addChilds($1);}
            |Texecute LLAMADA_FUNCION Tptcoma {$$=new AST_Node("SENTENCIA_EXECUTE","SENTENCIA_EXECUTE",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("Texecute",$1,this._$.first_line,@1.last_column),$2,new AST_Node(";",";",this._$.first_line,@3.last_column));}
            |REASIGNACION {$$=new AST_Node("SENTENCIA_REASIG","SENTENCIA_REASIG",this._$.first_line,@1.last_column); $$.addChilds($1);}
+           | error Tptcoma {$$=new AST_Node("ERROR","ERROR",this._$.first_line,@1.last_column); L_Error.getInstance().insertar(new N_Error("Sintactico", "Error en la gramatica :" + $1 + " ", this._$.first_line, @1.last_column));}
            ;
 
 REASIGNACION: Tid Tasigna1 EXP Tptcoma {$$=new AST_Node("REASIGNACION","REASIGNACION",this._$.first_line,@3.last_column); $$.addChilds(new AST_Node("id",$1,this._$.first_line,@1.last_column),new AST_Node("=",$2,this._$.first_line,@2.last_column),$3,new AST_Node(";",";",this._$.first_line,@4.last_column));};
@@ -240,8 +245,6 @@ CASES: CASES CASE {$$=new AST_Node("CASES","CASES",this._$.first_line,@2.last_co
 |CASE {$$=new AST_Node("CASES","CASES",this._$.first_line,@1.last_column); $$.addChilds($1)};
 
 CASE: Tcase EXP Tdospuntos SENTENCIAS {$$=new AST_Node("CASE","CASE",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("Tcase","case",this._$.first_line,@1.last_column),$2,new AST_Node(":",":",this._$.first_line,@3.last_column),$4);}
-|Tcase EXP Tdospuntos SENTENCIAS Tsent_trans Tptcoma {$$=new AST_Node("CASE","CASE",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("Tcase","case",this._$.first_line,@1.last_column),$2,new AST_Node(":",":",this._$.first_line,@3.last_column),$4,new AST_Node("Tsentencia_trans",$5,this._$.first_line,@5.last_column),new AST_Node(";",";",this._$.first_line,@6.last_column));}
-| Tcase EXP Tdospuntos Tsent_trans Tptcoma {$$=new AST_Node("CASE","CASE",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("Tcase","case",this._$.first_line,@1.last_column),$2,new AST_Node(":",":",this._$.first_line,@3.last_column),new AST_Node("Tsentencia_trans",$4,this._$.first_line,@4.last_column),new AST_Node(";",";",this._$.first_line,@5.last_column));}
 | Tcase EXP Tdospuntos {$$=new AST_Node("CASE","CASE",this._$.first_line,@1.last_column); $$.addChilds(new AST_Node("Tcase","case",this._$.first_line,@1.last_column),$2,new AST_Node(":",":",this._$.first_line,@3.last_column));}
 ;
 

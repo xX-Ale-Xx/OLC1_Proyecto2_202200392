@@ -222,6 +222,7 @@ class Operador{
                 console.log("entre");
                 console.log(raiz.childs[0].childs[0].value, "este simbolo busca");
                console.log(simbol);
+               console.log(global.valorRetorno, "este es el valor de retorno llamadaaaa");
                pila.recorrerPila();
                
                 if(simbol!=null){

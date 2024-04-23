@@ -462,10 +462,10 @@ class Interprete{
       global.funcionActual = raiz.childs[0].value;
       pila.push(newAmbito);
        this.interpretar(simbolo.valor, pila);
-      global.ret = false;
       
       TS.getInstance().borrarPorAmbito(raiz.childs[0].value);
       global.ret = false;
+      
       pila.pop();
     }else{
       L_Error.getInstance().insertar(new N_Error("Semantico","La funcion "+ raiz.childs[0].value + " no existe en el ambito actual" ,raiz.childs[0].fila,raiz.childs[0].columna ));
@@ -495,10 +495,11 @@ class Interprete{
       global.funcionActual = raiz.childs[0].value;
       pila.push(newAmbito);
        this.interpretar(simbolo.valor, pila);
-      global.ret = false;
+     
       
       TS.getInstance().borrarPorAmbito(raiz.childs[0].value);
       global.ret = false;
+      
       pila.pop();
       
     }else{
@@ -539,6 +540,8 @@ class Interprete{
     op = new Operador();
     res = op.ejecutar(raiz.childs[1], pila);
     global.valorRetorno = res;
+    console.log(global.valorRetorno, "ESTE ES EL VALOR RETORNO");
+
     return ;
   }
     return;
@@ -558,6 +561,7 @@ interpretarGlobal(raiz, pila){
   if(raiz===undefined || raiz===null)return;
   for(const hijo of raiz.childs){
     if(global.br){
+    
       break;
     }else if(global.cont){
       global.cont = false;
@@ -787,7 +791,19 @@ interpretarGlobal(raiz, pila){
       TS.getInstance().insertar(simbolo, pila);
     }
       break;
-  }
+      case "ARREGLOS_DEC_T5":
+        op = new Operador();
+        let arr = op.ejecutar(raiz.childs[5], pila);
+        console.log(arr, "ESTE ES EL ARREGLO");
+        if(raiz.childs[0].value.toLowerCase() == arr.tipo){
+          simbolo = new Simbolo(raiz.childs[1].value, raiz.childs[0].value.toLowerCase(), arr.valor , arr.valor.length, null, pila.obtenerUltimoAmbito());
+          TS.getInstance().insertar(simbolo, pila);
+
+        }else{
+          L_Error.getInstance().insertar(new N_Error("Semantico","No es posible asignar un valor " + arr.tipo + " a  un "+ raiz.childs[0].value ,raiz.childs[0].fila,raiz.childs[0].columna ));
+        }
+      break;
+    }
 
 }
   return;
@@ -828,18 +844,15 @@ armarSwitch(raiz, pila){
         if(global.ret){
           
           break;
+        }else if(global.br){
+          global.br = false;
+          break;
         }
         if(res.valor == opcion.valor || continuar){
           
-          if(c.childs.length == 6){
-            console.log("entro");
-            this.interpretar(c.childs[3], pila);
-          break;
-          }else if(c.childs.length == 4){
+        if(c.childs.length == 4){
              this.interpretar(c.childs[3], pila);
             continuar = true;
-          }else if(c.childs.length == 5){
-            break;
           }else if(c.childs.length == 3){
             continuar = true;
           }
@@ -854,17 +867,19 @@ armarSwitch(raiz, pila){
       let opcion;
       for(const c of raiz.childs[5].result){
         opcion = op.ejecutar(c.childs[1], pila);
-        if(res.valor == opcion.valor || continuar){
-          if(c.childs.length == 6){
-             this.interpretar(c.childs[3], pila);
+        if(global.ret){
           def = false;
           break;
-          }else if(c.childs.length == 4){
-            this.interpretar(c.childs[3], pila);
+        }else if(global.br){
+          global.br = false;
+          def = false;
+          break;
+        }
+        if(res.valor == opcion.valor || continuar){
+          
+        if(c.childs.length == 4){
+             this.interpretar(c.childs[3], pila);
             continuar = true;
-          }else if(c.childs.length == 5){
-            def = false;
-            break;
           }else if(c.childs.length == 3){
             continuar = true;
           }

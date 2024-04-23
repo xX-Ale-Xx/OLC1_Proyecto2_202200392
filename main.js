@@ -27,6 +27,10 @@ app.post( "/compilar",(req,res) =>{
     
     try{
       global.cod = "";
+      global.br = false;
+      global.cont = false;
+      global.ret = false;
+      global.valorRetorno = null;
       TS.getInstance().reiniciar();
       L_Error.getInstance().reiniciar();
       var resultado = parser.parse(req.body.textoEditor); 
@@ -45,6 +49,9 @@ app.post( "/compilar",(req,res) =>{
       return;
     }catch(error){
         console.log(error);
+      generarHtmlErrores(L_Error.getInstance().getErroresHtml());
+      let resultad = L_Error.getInstance().getErrores();
+      res.send(resultad);
         return;
     }
 });
